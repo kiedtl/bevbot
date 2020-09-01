@@ -10,11 +10,7 @@ respond_to_rollcall = True
 set_botmode = True
 
 prefix = f"{nickname}: "
-admins = [
-    "kiedtl",
-    "spacehare",
-    "cmccabe",
-]
+admins = ["kiedtl", "spacehare", "cmccabe"]
 
 bannedchans = []
 

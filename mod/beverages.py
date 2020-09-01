@@ -7,6 +7,7 @@ from common import nohighlight
 modname = "beverages"
 drinkdb = dataset.connect("sqlite:///dat/drinks.db")
 
+
 def bubbles():
     return "・゜゜・。。・゜゜"
 
@@ -19,6 +20,7 @@ def modinfo(ch):
 
     return ("beverages", "c[=]")
 
+
 def _modname(ch):
     return modinfo(ch)[0]
 
@@ -28,16 +30,20 @@ def trigger(ch):
 
 
 def response(ch):
-    return bubbles() + \
-            " " + modinfo(ch)[1] + " " + \
-            modinfo(ch)[0].upper() + " UP!"
+    return bubbles() + " " + modinfo(ch)[1] + " " + modinfo(ch)[0].upper() + " UP!"
 
 
 async def record_interaction(ch, usrinfo, nick, msg):
-    drinkdb[ch[1:]].insert(dict(nickname=nick, message=msg,
-        account=usrinfo['account'], username=usrinfo['username'],
-        identified=usrinfo['identified'],
-        datetime=datetime.datetime.now().timestamp()))
+    drinkdb[ch[1:]].insert(
+        dict(
+            nickname=nick,
+            message=msg,
+            account=usrinfo["account"],
+            username=usrinfo["username"],
+            identified=usrinfo["identified"],
+            datetime=datetime.datetime.now().timestamp(),
+        )
+    )
 
 
 async def show_drinks(self, ch, src, msg, args, opts):
@@ -68,9 +74,7 @@ async def show_drinks(self, ch, src, msg, args, opts):
         ctr += 1
 
     output = output[:-2]  # trim ', '
-    await out.msg(self, _modname(ch), ch,
-        [f"top {query} drinkers: {output}"])
-
+    await out.msg(self, _modname(ch), ch, [f"top {query} drinkers: {output}"])
 
 
 async def beverages_up(self, ch, src, msg):
