@@ -55,7 +55,7 @@ async def show_drinks(self, ch, src, msg, args, opts):
     :aliases: stats
     """
     chan = ch
-    if len(msg.split()[0]) > 0:
+    if len(msg) > 0:
         chan = msg.split()[0]
     if chan[0] == "#":
         chan = chan[1:]

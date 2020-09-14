@@ -7,6 +7,7 @@ import config
 import common, importlib, out, os, time
 import traceback
 import pprint
+import json
 import restart as _restart
 
 modname = "admin"
@@ -25,6 +26,8 @@ async def dump(self, chan, source, msg):
         pprint.pprint(vars(self), stream=f)
         pprint.pprint("\n\n\n", stream=f)
         pprint.pprint(dir(self), stream=f)
+    with open(f'{msg}.users.json', "w") as f:
+        json.dump(dict(self.users), fp=f)
     await out.msg(self, modname, chan, ["done"])
 
 
