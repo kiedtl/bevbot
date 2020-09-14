@@ -85,7 +85,8 @@ async def beverages_up(self, ch, src, msg):
     if not trigger(ch) in msg:
         return
 
-    await out.msg(self, _modname(ch), ch, [response(ch)])
+    # don't interact, balun already exists!
+    #await out.msg(self, _modname(ch), ch, [response(ch)])
     await record_interaction(ch, self.users[src], src, msg)
 
 
