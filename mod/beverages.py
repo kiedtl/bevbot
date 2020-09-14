@@ -51,13 +51,19 @@ async def show_drinks(self, ch, src, msg, args, opts):
     :name: drinks
     :hook: cmd
     :help: list commands or show help on command
-    :args: @command:str
+    :args: @beverage:str
     :aliases: stats
     """
-    query = modinfo(ch)[0]
+    chan = ch
+    if len(msg.split()[0]) > 0:
+        chan = msg.split()[0]
+    if chan[0] == '#':
+        chan = chan[1:]
+
+    query = modinfo(f'#{chan}')[0]
     total = 0
     stats = {}
-    for item in list(drinkdb[ch[1:]].find()):
+    for item in list(drinkdb[chan].find()):
         if not item["nickname"] in stats:
             stats[item["nickname"]] = 0
         stats[item["nickname"]] += 1
