@@ -57,10 +57,10 @@ async def show_drinks(self, ch, src, msg, args, opts):
     chan = ch
     if len(msg.split()[0]) > 0:
         chan = msg.split()[0]
-    if chan[0] == '#':
+    if chan[0] == "#":
         chan = chan[1:]
 
-    query = modinfo(f'#{chan}')[0]
+    query = modinfo(f"#{chan}")[0]
     total = 0
     stats = {}
     for item in list(drinkdb[chan].find()):
@@ -92,7 +92,7 @@ async def beverages_up(self, ch, src, msg):
         return
 
     # don't interact, balun already exists!
-    #await out.msg(self, _modname(ch), ch, [response(ch)])
+    # await out.msg(self, _modname(ch), ch, [response(ch)])
     await record_interaction(ch, self.users[src], src, msg)
 
 

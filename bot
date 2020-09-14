@@ -61,7 +61,7 @@ class SIGSEGV(pydle.Client):
         await super().on_join(chan, by)
 
         if by == self.nickname:
-            self.ignore_cmd = time.time() + 1
+            self.ignore_cmd = time.time() + 3
 
     async def on_invite(self, chan, by):
         await super().on_invite(chan, by)
@@ -153,7 +153,7 @@ class SIGSEGV(pydle.Client):
 
 if __name__ == '__main__':
     client = SIGSEGV(config.nickname, realname=config.realname,
-            sasl_username=config.username, sasl_password=secrets.sasl_password,
+        sasl_username=config.username, sasl_password=secrets.sasl_password,
         sasl_identity=config.username)
     client.prefix = config.prefix
     client.asleep = {}

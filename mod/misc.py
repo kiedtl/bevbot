@@ -1,5 +1,7 @@
-import common
+# REQUIRE file bin/sysinfo
+
 import config
+import common
 import out
 import random
 
@@ -17,10 +19,18 @@ async def ping(self, chan, src, msg):
 
 
 async def whoami(self, chan, src, msg):
-    await out.msg(self, "who", chan, [f"I'm {self.nickname}, kiedtl's bot."])
-    await out.msg(self, "who", chan, ["https://github.com/kiedtl/bevbot"])
-    await out.msg(self, "who", chan, ["raves and rants: kiedtl‍＠‍tilde.team"])
-    await out.msg(self, "who", chan, [f"for usage info, try {config.prefix}help"])
+    response = ""
+
+    owner = common.nohighlight(config.botmaster)
+    response += f"I'm {self.nickname}! | owner: {owner} "
+
+    if not config.upstream == None:
+        source = "".join([common.nohighlight(i) for i in config.upstream])
+        response += f"| source: {source} "
+
+    email = common.nohighlight(config.email[0]) + "‍＠‍" + config.email[1]
+    response += f"| contact: {email} | usage: try {config.prefix}help"
+    await out.msg(self, "who", chan, [response])
 
 
 async def init(self):

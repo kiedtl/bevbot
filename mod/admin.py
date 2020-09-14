@@ -7,6 +7,7 @@ import config
 import common, importlib, out, os, time
 import traceback
 import pprint
+import restart as _restart
 
 modname = "admin"
 
@@ -28,12 +29,16 @@ async def dump(self, chan, source, msg):
 
 
 async def quit(self, chan, source, msg):
-    await self.quit()
+    await self.quit(config.quitmsg)
 
 
 async def restart(self, chan, source, msg):
-    await self.quit()
-    os.system("systemctl --user restart bot")
+    await self.quit(config.quitmsg)
+    try:
+        _restart.restart()
+    except Exception as e:
+        self.log(modname, "encountered fatal exception while restarting")
+        self.log(modname, f"{repr(e)}")
 
 
 async def reloadmods(self, chan, source, msg):
@@ -125,12 +130,12 @@ async def shutup(self, c, n, m):
         except:
             duration = 5
     self.asleep[c] = time.time() + (duration * 60)
-    await out.msg(self, modname, chan, [f"disabled for {duration}m"])
+    await out.msg(self, modname, c, [f"disabled for {duration}m"])
 
 
 async def wake(self, c, n, m):
     self.asleep[c] = time.time()
-    await out.msg(self, modname, chan, ["I'm back!"])
+    await out.msg(self, modname, c, ["I'm back!"])
 
 
 commands = {

@@ -1,22 +1,28 @@
+botmaster = "kiedtl"
+email = ["kiedtl", "tilde.team"]
+upstream = None
+
 nickname = "bevbot"
 username = "kiedtl_bots"
-realname = "coffee! tea! water?"
+realname = "tea! coffee! water?"
 server = "localhost"
 tls = False
 tls_verify = False
 
-join_on_invite = False
+join_on_invite = True
 respond_to_rollcall = True
 set_botmode = True
 
-prefix = f"!"
-admins = ["kiedtl", "spacehare", "ben"]
+prefix = "!"
+admins = ["kiedtl", "spacehare", "cmccabe"]
 
 bannedchans = []
 
 # channels that are joined only when the
 # `:admin joins` command is issued
-prod_chans = ["#tea", "#coffee"]
+prod_chans = ["#coffee", "#tea"]
 
 # channels that are joined initially
-initial_chans = ["#bots"]
+initial_chans = ["#bots", "#spacehare"]
+
+quitmsg = "I need a bigger mug"
