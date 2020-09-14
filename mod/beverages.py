@@ -18,7 +18,7 @@ def modinfo(ch):
     elif ch == "#tea":
         return ("tea", "[_]b")
 
-    return ("beverages", "c[=]")
+    return ("beverage", "c[=]")
 
 
 def _modname(ch):
@@ -64,14 +64,17 @@ async def show_drinks(self, ch, src, msg, args, opts):
     total = 0
     stats = {}
     for item in list(drinkdb[chan].find()):
-        if not item["nickname"] in stats:
-            stats[item["nickname"]] = 0
-        stats[item["nickname"]] += 1
-        total += 1
+        # use account, falling back to nickname
+        # if the user wasn't registered
+        identifier = item["account"] or item["nickname"]
+
+        if not identifier in stats:
+            stats[identifier] = 0
+        stats[identifier] += 1; total += 1
 
     output = ""
     ctr = 0
-    until = 7
+    until = 8
     for i in sorted(stats.items(), key=lambda i: i[1], reverse=True):
         if ctr == until:
             break
@@ -80,7 +83,8 @@ async def show_drinks(self, ch, src, msg, args, opts):
         ctr += 1
 
     output = output[:-2]  # trim ', '
-    await out.msg(self, _modname(ch), ch, [f"top {query} drinkers: {output}"])
+    await out.msg(self, _modname(ch), ch,
+        [f"top {query} drinkers (may not be accurate): {output}"])
 
 
 async def beverages_up(self, ch, src, msg):
