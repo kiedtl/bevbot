@@ -143,7 +143,7 @@ class SIGSEGV(pydle.Client):
         await self.on_channel_message(source, source, msg)
 
     async def on_ctcp(self, by, chan, what, contents):
-        await super().on_ctcp(by, chan, source, msg)
+        await super().on_ctcp(by, chan, what, contents)
 
         # treat actions as normal messages
         if what == 'ACTION':
