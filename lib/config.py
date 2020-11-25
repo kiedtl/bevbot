@@ -2,7 +2,7 @@ botmaster = "kiedtl"
 email = ["kiedtl", "tilde.team"]
 upstream = None
 
-nickname = "bevbot"
+nickname = "barista"
 username = "kiedtl_bots"
 realname = "tea! coffee! water?"
 server = "localhost"
@@ -13,8 +13,8 @@ join_on_invite = True
 respond_to_rollcall = True
 set_botmode = True
 
-prefix = "!"
-admins = ["kiedtl", "spacehare", "cmccabe"]
+prefix = "\\"
+admins = ["kiedtl", "spacehare", "cmccabe", "kumquat"]
 
 bannedchans = []
 
