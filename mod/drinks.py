@@ -4,7 +4,7 @@ import handlers
 import out
 from common import nohighlight
 
-modname = "beverages"
+modname = "drinks"
 drinkdb = dataset.connect("sqlite:///dat/drinks.db")
 
 
@@ -14,19 +14,20 @@ def bubbles():
 
 def modinfo(ch):
     if ch == "#coffee":
-        return ("coffee", "c[~]")
+        return ("coffee", "c[~]", ["coffee!",
+            "latte!", "espresso!"])
     elif ch == "#tea":
-        return ("tea", "[_]b")
+        return ("tea", "[_]b", ["tea!"])
 
-    return ("beverage", "c[=]")
+    return ("drinks", "c[=]", ["drinks!"])
 
 
 def _modname(ch):
     return modinfo(ch)[0]
 
 
-def trigger(ch):
-    return modinfo(ch)[0] + "!"
+def triggers(ch):
+    return modinfo(ch)[2]
 
 
 def response(ch):
@@ -92,7 +93,13 @@ async def beverages_up(self, ch, src, msg):
     :name: beverages_up
     :hook: raw
     """
-    if not trigger(ch) in msg:
+
+    has_trigger = False
+    _triggers = triggers(ch)
+    for trigger in _triggers:
+        if trigger in msg:
+            has_trigger = True
+    if not has_trigger:
         return
 
     # don't interact, balun already exists!
