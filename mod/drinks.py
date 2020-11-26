@@ -14,8 +14,7 @@ def bubbles():
 
 def modinfo(ch):
     if ch == "#coffee":
-        return ("coffee", "c[~]", ["coffee!",
-            "latte!", "espresso!"])
+        return ("coffee", "c[~]", ["coffee!", "latte!", "espresso!"])
     elif ch == "#tea":
         return ("tea", "[_]b", ["tea!"])
 
@@ -71,7 +70,8 @@ async def show_drinks(self, ch, src, msg, args, opts):
 
         if not identifier in stats:
             stats[identifier] = 0
-        stats[identifier] += 1; total += 1
+        stats[identifier] += 1
+        total += 1
 
     output = ""
     ctr = 0
@@ -84,8 +84,7 @@ async def show_drinks(self, ch, src, msg, args, opts):
         ctr += 1
 
     output = output[:-2]  # trim ', '
-    await out.msg(self, _modname(ch), ch,
-        [f"top {query} drinkers (may not be accurate): {output}"])
+    await out.msg(self, _modname(ch), ch, [f"top {query} drinkers: {output}"])
 
 
 async def beverages_up(self, ch, src, msg):
