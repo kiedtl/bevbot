@@ -43,8 +43,8 @@ async def serve(self, ch, src, msg, args, opts):
     :args: @user:str
     """
     recipient = src
-    if len(msg) > 0:
-        recipient = msg
+    if len(msg) > 0 and len(msg.split()) > 0:
+        recipient = msg.split()[0]
 
     espresso = _espresso()
     action = random.choice(ACTION)
