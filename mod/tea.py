@@ -13,12 +13,27 @@ def _flatten(src):
 
 
 CHANCE_OF_TEA_ADJ = 25
-CHANCE_OF_VESSEL_SIZE = 75
-CHANCE_OF_VESSEL_ADJ = 55
+CHANCE_OF_VESSEL_SIZE = 90
+CHANCE_OF_VESSEL_ADJ = 85
 
 ACTION = ["hands", "gives", "passes", "tosses", "throws"]
 
 
+# some teas can only be in a certain set of containers.
+# for instance, hohins will only hold some kind of green tea.
+#
+# also, some adjectives only fit certain teas.
+# example: Kangra => green tea, Irish => black tea
+#
+# Some teas are only good at a certain temperature (cold butter
+# tea is disgusting).
+#
+# because of that, we can't just choose a random tea, adjective,
+# and vessel; we need to choose the tea first, then the vessel
+# and adjective based on what tea was chosen.
+#
+# this structure keeps track of what vessels/adjectives can be
+# used for each tea.
 @dataclasses.dataclass
 class Tea:
     name: str
@@ -29,6 +44,10 @@ class Tea:
 
 # fmt: off
 
+# tea adjectives. brands, places, etc.
+#
+# Kangra is a location in India where some kinds of green
+# tea are made.
 NEWMANS   = "Newman's Own"
 EARL      = "Earl Grey"
 FAIRTRADE = "fair trade"
@@ -38,11 +57,13 @@ KANGRA    = "Kangra"
 IRISH     = "Irish"
 ENGLISH   = "English"
 
+# Temperature of tea.
 COLD = ["iced", "cold", "chilled"]
 WARM = ["lukewarm", "warm", "warmish"]
 HOT  = ["boiling", "scalding", "steaming", "sweltering", "toasty hot"]
 ALL  = _flatten([COLD, WARM, HOT])
 
+# Vessels for tea.
 TEAPOT  = ["teapot",  ["vintage", "silver", "English", "antique silver", "jasperware"]]
 MUG     = ["mug",     ["stoneware", "porcelain", "jasperware", "wooden"]]
 BOWL    = ["bowl",    ["burl wood-and-silver tea", "Tibetan tea", "Tibetan silver tea"]]
@@ -50,7 +71,7 @@ SAMOVAR = ["samovar", ["antique", "vintage", "brass", "silver"]]
 TEACUP  = ["teacup",  []]
 HOHIN   = ["hohin",   []]
 GAIWAN  = ["gaiwan",  ["porcelain", "Ruyao"]]
-SHIBOR_ = ["shiboridashi",  ["porcelain", "Ruyao"]]
+SHIBOR_ = ["shiboridashi",  ["porcelain", "red clay"]]
 
 SIZES = ["large", "small", "medium", "tall", "wide", "big", "100ml",
         "giant", "tiny"]
@@ -71,11 +92,12 @@ TEAS = [
     Tea(f"christmas {TEA}",              [TEAPOT, MUG, TEACUP], [HOMEMADE], [ALL]),
     Tea(f"rooibos {TEA}",                [TEAPOT, MUG, TEACUP], [], [ALL]),
     Tea(f"tulsi {TEA}",                  [TEAPOT, MUG, TEACUP], [FAIRTRADE], [COLD, HOT]),
+    Tea(f"lemonbalm and tulsi {TEA}",    [TEAPOT, MUG, TEACUP], [FAIRTRADE], [COLD, HOT]),
     Tea(f"spearmint {TEA}",              [TEAPOT, MUG], [HOMEMADE], [COLD]),
     Tea(f"peppermint {TEA}",             [TEAPOT, MUG], [HOMEMADE], [COLD]),
     Tea(f"chocolate mint {TEA}",         [TEAPOT, MUG], [HOMEMADE], [COLD]),
-    Tea(f"mullein herbal {TEA}",         [MUG], [HOMEMADE], [ALL]),
-    Tea(f"lamb's ears herbal {TEA}",     [MUG], [HOMEMADE], [ALL]),
+    Tea(f"mullein {TEA}",                [MUG], [HOMEMADE], [ALL]),
+    Tea(f"lamb's ears {TEA}",            [MUG], [HOMEMADE], [ALL]),
     Tea(f"tumeric ginger {TEA}",         [TEAPOT, MUG, TEACUP], [NEWMANS],  [ALL]),
     Tea(f"lemongrass-verbena {TEA}",     [MUG, TEACUP], [HOMEMADE], [COLD]),
     Tea(f"black currant hibiscus {TEA}", [MUG, TEACUP], [], [ALL]),
@@ -124,8 +146,8 @@ async def serve(self, ch, src, msg, args, opts):
     :args: @user:str
     """
     recipient = src
-    if len(msg) > 0:
-        recipient = msg
+    if len(msg) > 0 and len(msg.split()) > 0:
+        recipient = msg.split()[0]
 
     tea = _tea()
     action = random.choice(ACTION)
