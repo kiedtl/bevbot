@@ -16,7 +16,7 @@ CHANCE_OF_TEA_ADJ = 25
 CHANCE_OF_VESSEL_SIZE = 90
 CHANCE_OF_VESSEL_ADJ = 85
 
-ACTION = ["hands", "gives", "passes", "tosses", "throws"]
+ACTION = ["hands", "gives", "passes", "serves"]
 
 
 # some teas can only be in a certain set of containers.

@@ -5,7 +5,7 @@ from common import nohighlight
 
 modname = "coffee"
 
-ACTION = ["hands", "gives", "passes", "tosses", "throws"]
+ACTION = ["hands", "gives", "passes", "serves"]
 ESPRESSO = ["mocha", "latte", "macchiato", "breve", "americano", "cubano", "cappuccino"]
 SIZES = ["small", "medium", "short", "tall", "large", "grande", "venti"]
 FLAVORS = [
