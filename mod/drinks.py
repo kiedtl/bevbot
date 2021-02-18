@@ -107,11 +107,10 @@ async def beverages_up(self, ch, src, msg):
     if not has_trigger:
         return
 
-    # don't interact, balun already exists!
-    # await out.msg(self, _modname(ch), ch, [response(ch)])
+    #await self.message(ch, response(ch))
     await record_interaction(ch, self.users[src], src, msg)
 
 
 async def init(self):
-    handlers.register(self, modname, show_drinks)
+    #handlers.register(self, modname, show_drinks)
     handlers.register(self, modname, beverages_up)
