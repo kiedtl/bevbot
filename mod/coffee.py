@@ -26,10 +26,9 @@ def _espresso():
     coffee = random.choice(ESPRESSO)
     shots = round(random.uniform(1, 3))
 
+    shots_str = "shots"
     if shots == 1:
         shots_str = "shot"
-    else:
-        shots_str = "shots"
 
     espresso = nohighlight("espresso")
     return f"{size} {heat} {flavor} {coffee} with {shots} {shots_str} of {espresso}"
