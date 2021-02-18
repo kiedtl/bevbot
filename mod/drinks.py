@@ -98,6 +98,7 @@ async def beverages_up(self, ch, src, msg):
     :hook: raw
     """
 
+    msg = msg.lower()
     has_trigger = False
     _triggers = triggers(ch)
     for trigger in _triggers:
