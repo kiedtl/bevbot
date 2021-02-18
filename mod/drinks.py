@@ -21,7 +21,7 @@ def modinfo(ch):
     if ch == "#coffee":
         return ("coffee", "c[~]", ["coffee!", "latte!", "espresso!"])
     elif ch == "#tea":
-        return ("tea", "[_]b", ["tea!"])
+        return ("tea", "[_]b", ["tea!", "chai!", "matcha!"])
 
     return ("drinks", "c[~]", ["drinks!"])
 
