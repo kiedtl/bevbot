@@ -54,18 +54,22 @@ FAIRTRADE = "fair trade"
 HOMEMADE  = "homemade"
 HOMEBREWN = "home-brewn"
 KANGRA    = "Kangra"
-IRISH     = "Irish"
-ENGLISH   = "English"
+IRISH     = "Irish-breakfast"
+ENGLISH   = "English-breakfast"
+DARJEEL   = "Darjeeling"
+VANILLA   = "vanilla"
+LEMONGRSS = "lemongrass"
+HIBISCUS  = "hibiscus"
 
 # Temperature of tea.
-COLD = ["iced", "cold", "chilled"]
-WARM = ["lukewarm", "warm", "warmish"]
+COLD = ["iced", "cold", "chilled", "ice cold"]
+WARM = ["lukewarm", "warm", "warmish", "room temperature"]
 HOT  = ["boiling", "scalding", "steaming", "sweltering", "toasty hot"]
 ALL  = _flatten([COLD, WARM, HOT])
 
 # Vessels for tea.
 TEAPOT  = ["teapot",  ["vintage", "silver", "English", "antique silver", "jasperware"]]
-MUG     = ["mug",     ["stoneware", "porcelain", "jasperware", "wooden"]]
+MUG     = ["mug",     ["stoneware", "porcelain", "jasperware", "wooden", "Indian-made clay mug"]]
 BOWL    = ["bowl",    ["burl wood-and-silver tea", "Tibetan tea", "Tibetan silver tea"]]
 SAMOVAR = ["samovar", ["antique", "vintage", "brass", "silver"]]
 TEACUP  = ["teacup",  []]
@@ -80,7 +84,7 @@ TEA = nohighlight("tea")
 
 TEAS = [
     Tea(f"black {TEA}",                  [SAMOVAR, TEAPOT, MUG, TEACUP],
-        [IRISH, ENGLISH, NEWMANS, EARL], [ALL]),
+        [IRISH, ENGLISH, NEWMANS, EARL, DARJEEL], [ALL]),
     Tea(f"green {TEA}",                  [TEAPOT, MUG, HOHIN], [KANGRA], [ALL]),
     Tea(f"matcha green {TEA}",           [HOHIN, TEAPOT, MUG, TEACUP], [], [ALL]),
     Tea(f"sencha green {TEA}",           [SHIBOR_, HOHIN, TEAPOT, MUG, TEACUP], [], [ALL]),
@@ -100,8 +104,10 @@ TEAS = [
     Tea(f"lamb's ears {TEA}",            [MUG], [HOMEMADE], [ALL]),
     Tea(f"tumeric ginger {TEA}",         [TEAPOT, MUG, TEACUP], [NEWMANS],  [ALL]),
     Tea(f"lemongrass-verbena {TEA}",     [MUG, TEACUP], [HOMEMADE], [COLD]),
+    Tea(f"lemongrass {TEA}",             [MUG, TEACUP], [HOMEMADE], [COLD]),
     Tea(f"black currant hibiscus {TEA}", [MUG, TEACUP], [], [ALL]),
     Tea(f"roasted dandelion root {TEA}", [TEAPOT, MUG, TEACUP], [HOMEMADE], [ALL]),
+    Tea(f"dandelion leaf-and-root {TEA}", [TEAPOT, MUG, TEACUP], [HOMEMADE], [ALL]),
     Tea(f"lavender {TEA}",               [TEAPOT, MUG, TEACUP], [HOMEMADE], [ALL]),
 ]
 
