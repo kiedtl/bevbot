@@ -1,15 +1,20 @@
 import dataset
 import datetime
 import handlers
+import random
 import out
 from common import nohighlight
 
 modname = "drinks"
 drinkdb = dataset.connect("sqlite:///dat/drinks.db")
 
+SINGLE_WAVE_LEN = 8
+WAVES = "・゜゜・。。・゜゜・。。・゜゜・。。・゜゜・。。"
+
 
 def bubbles():
-    return "・゜゜・。。・゜゜"
+    index = round(random.uniform(0, (len(WAVES) - SINGLE_WAVE_LEN) - 1))
+    return WAVES[index : (index + SINGLE_WAVE_LEN)]
 
 
 def modinfo(ch):
@@ -18,7 +23,7 @@ def modinfo(ch):
     elif ch == "#tea":
         return ("tea", "[_]b", ["tea!"])
 
-    return ("drinks", "c[=]", ["drinks!"])
+    return ("drinks", "c[~]", ["drinks!"])
 
 
 def _modname(ch):
