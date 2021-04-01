@@ -51,7 +51,6 @@ class Tea:
 NEWMANS   = "Newman's Own"
 EARL      = "Earl Grey"
 FAIRTRADE = "fair trade"
-ORGANIC   = "organic"
 HOMEMADE  = "homemade"
 HOMEBREWN = "home-brewn"
 KANGRA    = "Kangra"
@@ -63,9 +62,9 @@ LEMONGRSS = "lemongrass"
 HIBISCUS  = "hibiscus"
 
 # Temperature of tea.
-COLD = ["iced", "cold", "chilled", "ice cold"]
+COLD = ["iced", "cold", "chilled", "ice-cold", "freezing"]
 WARM = ["lukewarm", "warm", "warmish", "room temperature"]
-HOT  = ["boiling", "scalding", "steaming", "sweltering", "toasty hot"]
+HOT  = ["boiling", "scalding", "steaming", "sweltering", "toasty hot", "red-hot"]
 ALL  = _flatten([COLD, WARM, HOT])
 
 # Vessels for tea.
@@ -85,16 +84,16 @@ TEA = "tea" #nohighlight("tea")
 
 TEAS = [
     Tea(f"black {TEA}",                  [SAMOVAR, TEAPOT, MUG, TEACUP],
-        [IRISH, ENGLISH, NEWMANS, EARL, DARJEEL], [ALL]),
-    Tea(f"green {TEA}",                  [TEAPOT, MUG, HOHIN], [KANGRA], [ALL]),
-    Tea(f"matcha green {TEA}",           [HOHIN, TEAPOT, MUG, TEACUP], [], [ALL]),
+        [IRISH, ENGLISH, NEWMANS, EARL, DARJEEL], [COLD, HOT]),
+    Tea(f"green {TEA}",                  [TEAPOT, MUG, HOHIN], [KANGRA], [COLD, HOT]),
+    Tea(f"matcha green {TEA}",           [HOHIN, TEAPOT, MUG, TEACUP], [], [COLD, HOT]),
     Tea(f"sencha green {TEA}",           [SHIBOR_, HOHIN, TEAPOT, MUG, TEACUP], [], [ALL]),
     Tea(f"white {TEA}",                  [TEAPOT, MUG, TEACUP], [EARL], [ALL]),
     Tea(f"oolong {TEA}",                 [TEAPOT, MUG, TEACUP], [], [WARM, HOT]),
     Tea(f"pu'er",                        [SHIBOR_, TEAPOT, MUG, TEACUP], [], [ALL]),
     Tea(f"chai",                         [TEAPOT, MUG, TEACUP], [HOMEMADE], [WARM, HOT]),
     Tea(f"butter {TEA}",                 [TEAPOT, MUG, BOWL, TEACUP], [HOMEMADE], [HOT]),
-    Tea(f"christmas {TEA}",              [TEAPOT, MUG, TEACUP], [HOMEMADE], [ALL]),
+    Tea(f"christmas {TEA}",              [TEAPOT, MUG, TEACUP], [HOMEMADE], [HOT]),
     Tea(f"rooibos {TEA}",                [TEAPOT, MUG, TEACUP], [], [ALL]),
     Tea(f"tulsi {TEA}",                  [TEAPOT, MUG, TEACUP], [FAIRTRADE], [COLD, HOT]),
     Tea(f"lemonbalm and tulsi {TEA}",    [TEAPOT, MUG, TEACUP], [FAIRTRADE], [COLD, HOT]),
@@ -107,17 +106,26 @@ TEAS = [
     Tea(f"lemongrass-verbena {TEA}",     [MUG, TEACUP], [HOMEMADE], [COLD]),
     Tea(f"lemongrass {TEA}",             [MUG, TEACUP], [HOMEMADE], [COLD]),
     Tea(f"black currant hibiscus {TEA}", [MUG, TEACUP], [], [ALL]),
-    Tea(f"roasted dandelion root {TEA}", [TEAPOT, MUG, TEACUP], [ORGANIC, HOMEMADE], [ALL]),
+    Tea(f"roasted dandelion root {TEA}", [TEAPOT, MUG, TEACUP], [HOMEMADE], [HOT]),
     Tea(f"dandelion leaf-and-root {TEA}", [TEAPOT, MUG, TEACUP], [HOMEMADE], [ALL]),
     Tea(f"lavender {TEA}",               [TEAPOT, MUG, TEACUP], [HOMEMADE], [ALL]),
-    Tea(f"cinnamon-apple herbal {TEA}",  [TEAPOT, MUG, TEACUP], [ORGANIC], [ALL]),
+    Tea(f"cinnamon-apple {TEA}",         [TEAPOT, MUG], [], [ALL]),
 ]
 
 # fmt: on
 
 
-def _tea():
-    tea = random.choice(TEAS)
+def _tea(query):
+    tea = None
+    if query:
+        for item in TEAS:
+            if query in item.name:
+                tea = item
+                break
+        if not tea:
+            return None
+    else:
+        tea = random.choice(TEAS)
 
     heat = random.choice(_flatten(tea.heats))
     vessel_type = random.choice(tea.vessels)
@@ -154,13 +162,20 @@ async def serve(self, ch, src, msg, args, opts):
     :args: @user:str
     """
     recipient = src
+    query = None
     if len(msg) > 0 and len(msg.split()) > 0:
-        recipient = msg.split()[0]
+        args = msg.split()
+        recipient = args[0]
+        if len(args) > 1:
+            query = args[1]
 
-    tea = _tea()
-    action = random.choice(ACTION)
+    tea = _tea(query)
 
-    await self.ctcp(ch, "ACTION", f"{action} {recipient} a {tea}!")
+    if tea:
+        action = random.choice(ACTION)
+        await self.ctcp(ch, "ACTION", f"{action} {recipient} a {tea}!")
+    else:
+        await self.ctcp(ch, "ACTION", f"rummages around a bit...")
 
 
 async def init(self):
