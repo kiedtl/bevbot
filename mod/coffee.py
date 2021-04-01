@@ -30,7 +30,7 @@ def _espresso():
     if shots == 1:
         shots_str = "shot"
 
-    espresso = nohighlight("espresso")
+    espresso = "espresso" #nohighlight("espresso")
     return f"{size} {heat} {flavor} {coffee} with {shots} {shots_str} of {espresso}"
 
 
