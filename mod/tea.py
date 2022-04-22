@@ -69,7 +69,7 @@ ALL  = _flatten([COLD, WARM, HOT])
 
 # Vessels for tea.
 TEAPOT  = ["teapot",  ["vintage", "silver", "English", "antique silver", "jasperware"]]
-MUG     = ["mug",     ["stoneware", "porcelain", "jasperware", "wooden", "Indian-made clay mug"]]
+MUG     = ["mug",     ["stoneware", "porcelain", "jasperware", "wooden", "Indian-made clay"]]
 BOWL    = ["bowl",    ["burl wood-and-silver tea", "Tibetan tea", "Tibetan silver tea"]]
 SAMOVAR = ["samovar", ["antique", "vintage", "brass", "silver"]]
 TEACUP  = ["teacup",  ["porcelain"]]
