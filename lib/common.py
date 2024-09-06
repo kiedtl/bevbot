@@ -4,10 +4,8 @@ import config
 import subprocess
 from subprocess import Popen, PIPE, STDOUT
 
-
 class BacklogTooShort(Exception):
     pass
-
 
 def loadlogs(chan):
     logf = open("irc/{}.log".format(chan))

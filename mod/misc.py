@@ -2,23 +2,30 @@
 
 import config
 import common
-import out
 import random
+import handlers
 
-
-async def list_mods(self, chan, src, msg):
-    mods = ", ".join(sorted(list(self.modules.keys())))
-    await out.msg(self, "modules", chan, [f"loaded: {mods}"])
-
+from common import *
 
 async def ping(self, chan, src, msg):
+    """
+    :name: ping
+    :hook: cmd
+    :help: check if I'm responding
+    :args:
+    """
     res = random.choice(
-        ["you rang?", "yes?", "pong!", "what?", "hmmm?", "at your service!"]
+        ["you rang?", "yes?", "pong!", "what?", "hmmm?", "want coffee?"]
     )
-    await out.msg(self, "ping", chan, [f"{src}: {res}"])
-
+    await self.msg("ping", chan, [f"{src}: {res}"])
 
 async def whoami(self, chan, src, msg):
+    """
+    :name: who
+    :hook: cmd
+    :help: get information about my owner
+    :args:
+    """
     response = ""
 
     owner = common.nohighlight(config.botmaster)
@@ -30,14 +37,8 @@ async def whoami(self, chan, src, msg):
 
     email = common.nohighlight(config.email[0]) + "‍＠‍" + config.email[1]
     response += f"| contact: {email} | usage: try {config.prefix}help"
-    await out.msg(self, "who", chan, [response])
-
+    await self.msg("who", chan, [response])
 
 async def init(self):
-    self.handle_cmd["modules"] = list_mods
-    self.handle_cmd["ping"] = ping
-    self.handle_cmd["who"] = whoami
-
-    self.help["modules"] = ["modules - list loaded modules"]
-    self.help["ping"] = ["ping - check if I'm responding"]
-    self.help["who"] = ["who - get information about my owner"]
+    handlers.register(self, "ping", ping)
+    handlers.register(self, "meta", whoami)

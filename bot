@@ -1,25 +1,72 @@
 #!/usr/bin/env python3
 
 import asyncio
-import config
 import datetime
-import handlers
 import os
-import out
-import pydle
-import secrets
 import sys
 import time
 import traceback
 
+import fmt
+import config
+import handlers
+import secrets
+
+from irctokens import build, Line
+from ircrobots import Bot as BaseBot
+from ircrobots import Server as BaseServer
+from ircrobots import ConnectionParams, SASLUserPass, SASLSCRAM
+
 from misc import whoami
 
-class SIGSEGV(pydle.Client):
-    async def on_connect(self):
-        await super().on_connect()
+# cache output, module name on a per-channel basis
+# this is for self.msg and self.more
+output_buf = {}
+last_modname = {}
 
+class Server(BaseServer):
+    def log(self, mod, txt):
+        now = datetime.datetime.now()
+        fmt = datetime.datetime.strftime(now, '%Y-%M-%dT%H:%m:%SZ')
+        print(f'{fmt}: [{mod}]: {txt}')
+
+    async def load_mods(self):
+        for i in [s for s in os.listdir('mod') if '.py' in s]:
+            i = i[:-3]
+            self.log('modules', f'loading {i}')
+            m = __import__('mod.' + i)
+            m = eval('m.' + i)
+            asyncio.create_task(m.init(self))
+            self.modules[i] = m
+
+    # -----
+
+    async def line_read(self, line: Line):
+        if "on_" + line.command.lower() in dir(self):
+            asyncio.create_task(
+                self.__getattribute__("on_" + line.command.lower())(line)
+            )
+        #for listener in shared.listeners:
+        #    if listener[0] == line.command:
+        #        asyncio.create_task(listener[1](self, line))
+
+    def line_preread(self, line: Line):
+        self.log("raw", f"RECV: {self.name} <- {line.format()}")
+
+    def line_presend(self, line: Line):
+        self.log("raw", f"SEND: {self.name} -> {line.format()}")
+
+    async def on_invite(self, line):
+        self.log('irc', 'received invite by {} to {}'.format(by, chan))
+
+        if config.join_on_invite:
+            if chan not in config.bannedchans:
+                await self.join(chan)
+
+    async def on_001(self, line):
         self.log('irc', 'connected!')
 
+        self.background_tasks = set()
         self.fndata = {}
         self.modules = {}
         self.help = {}
@@ -39,6 +86,8 @@ class SIGSEGV(pydle.Client):
 
         self.log('modules', 'loading modules...')
         await self.load_mods()
+        self.log('modules', 'done!')
+
         self.log('irc', 'joining channels')
         for i in config.initial_chans:
             await self.join(i)
@@ -48,37 +97,26 @@ class SIGSEGV(pydle.Client):
             self.log('irc', 'attempting to set mode +B')
             await self.set_mode(self.nickname, '+B')
 
-    async def load_mods(self):
-        for i in [s for s in os.listdir('mod') if '.py' in s]:
-            i = i[:-3]
-            self.log('modules', f'loading {i}')
-            m = __import__('mod.' + i)
-            m = eval('m.' + i)
-            await m.init(self)
-            self.modules[i] = m
+    async def on_join(self, line):
+        source = line.source.split("!")[0]
+        chan, msg = line.params[0], line.params[1]
 
-    async def on_join(self, chan, by):
-        await super().on_join(chan, by)
+        if source == self.nickname:
+            self.ignore_cmd = time.time() + 1
 
-        if by == self.nickname:
-            self.ignore_cmd = time.time() + 3
+    async def on_privmsg(self, line):
+        # Skip batched messages, like channel history and bouncer playback
+        if line.tags and "batch" in line.tags and line.tags["batch"] == "1":
+            return
 
-    async def on_invite(self, chan, by):
-        await super().on_invite(chan, by)
-
-        self.log('irc', 'received invite by {} to {}'.format(by, chan))
-
-        if config.join_on_invite:
-            if chan not in config.bannedchans:
-                await self.join(chan)
-
-    async def on_channel_message(self, chan, source, msg):
-        await super().on_message(chan, source, msg)
+        source = line.source.split("!")[0]
+        chan, msg = line.params[0], line.params[1]
 
         # ignore channel playback on channels that have
         # mode +H (only on ircv3 servers)
-        if not time.time() > self.ignore_cmd:
-            return
+        #if not time.time() > self.ignore_cmd:
+        #    self.log("irc", "ignoring")
+        #    return
 
         for i in self.handle_raw:
             await self.handle_raw[i](self, chan, source, msg)
@@ -92,7 +130,7 @@ class SIGSEGV(pydle.Client):
             return
 
         if not chan in self.asleep:
-            self.asleep[chan] = time.time()
+            self.asleep[chan] = 0
 
         for i in self.handle_reg:
             # (<regex>, <function>)
@@ -126,43 +164,103 @@ class SIGSEGV(pydle.Client):
                         module = self.fndata[func]['module']
                     else:
                         module = 'oops'
-                    await out.msg(self, module, chan,
-                        ['segmentation fault', repr(e)])
+                    await self.msg(module, chan, ['segmentation fault', repr(e)])
                     return
 
+    async def msg(self, mod, chan, msg: list):
+        # TODO: throttling (if the messages are too big)
+        if chan in output_buf:
+            del output_buf[chan]
+        output_buf[chan] = msg[:]  # copy list
+        last_modname[chan] = mod
+
+        msg_fmted = "{}"
+        if len(last_modname[chan]) > 1:
+            msg_fmted = fmt.modname(last_modname[chan]) + " " + msg_fmted
+
+        if len(output_buf[chan]) > 1:
+            msg_fmted = msg_fmted + " (more)"
+
+        await self.message(chan, msg_fmted.format(output_buf[chan].pop(0)))
+
+    async def more(self, chan):
+        if len(output_buf[chan]) == 0:
+            await self.message(
+                chan, "{} no more text to show".format(fmt.modname("more"))
+            )
+            return
+
+        msg_fmted = "{}"
+        if len(last_modname[chan]) > 1:
+            msg_fmted = fmt.modname(last_modname[chan]) + " " + msg_fmted
+        if len(output_buf[chan]) > 1:
+            msg_fmted = msg_fmted + " (more)"
+
+        await self.message(chan, msg_fmted.format(output_buf[chan].pop(0)))
+
     async def is_admin(self, nickname):
-        info = await self.whois(nickname)
-        # check if they are identified
-        if not 'account' in info:
-            return False
+        l = nickname.lower()
+        return l in self.users and self.users[l].account in config.admins
 
-        return info['account'] in config.admins
+    #async def on_ctcp(self, by, chan, what, contents):
+    #    # treat actions as normal messages
+    #    if what == 'ACTION':
+    #        await self.on_channel_message(chan, by, f"{what} {contents}")
 
-    async def on_private_message(self, chan, source, msg):
-        await super().on_private_message(chan, source, msg)
-        await self.on_channel_message(source, source, msg)
+    #async def on_user_mode_change(self, modes):
+    #    self.log('irc', 'mode changed: {}'.format(modes))
 
-    async def on_ctcp(self, by, chan, what, contents):
-        await super().on_ctcp(by, chan, what, contents)
+    # Pydle compat
+    # ----
 
-        # treat actions as normal messages
-        if what == 'ACTION':
-            await self.on_channel_message(chan, by, f"{what} {contents}")
+    async def action(self, chan: str, message: str):
+        await self.send(build("PRIVMSG", [chan, f"\x01ACTION {message}\x01"]))
 
+    async def part(self, chan: str):
+        #await self.send_part(chan, None)
+        self.send(build("PART", [chan]))
 
-    async def on_user_mode_change(self, modes):
-        await super().on_user_mode_change(modes)
-        self.log('irc', 'mode changed: {}'.format(modes))
+    async def join(self, chan: str):
+        #async def j(s, c):
+        #    await s.send_join(c, None)
+        #t = asyncio.create_task(j(self, chan))
+        #self.background_tasks.add(t)
+        #t.add_done_callback(self.background_tasks.discard)
+        self.send(build("JOIN", [chan]))
 
-    def log(self, mod, txt):
-        now = datetime.datetime.now()
-        fmt = datetime.datetime.strftime(now, '%Y-%M-%dT%H:%m:%SZ')
-        print(f'{fmt}: [{mod}]: {txt}')
+    async def joins(self, chans):
+        #await asyncio.create_task(self.send_joins(chans, []))
+        self.send(build("JOIN", chans))
 
-if __name__ == '__main__':
-    client = SIGSEGV(config.nickname, realname=config.realname,
-        sasl_username=config.username, sasl_password=secrets.sasl_password,
-        sasl_identity=config.username)
-    client.prefix = config.prefix
-    client.asleep = {}
-    client.run(config.server, tls=config.tls, tls_verify=config.tls_verify)
+    async def set_mode(self, nick, modes):
+        await self.send(build("MODE", [nick, modes]))
+
+    async def message(self, channel, s):
+        await self.send(build("PRIVMSG", [channel, s]))
+
+    async def quit(self, msg):
+        await self.send(build("QUIT", [msg]))
+
+class Bot(BaseBot):
+    def create_server(self, name: str):
+        s = Server(self, name)
+        s.prefix = config.prefix
+        s.asleep = {}
+        return s
+
+async def main():
+    bot = Bot()
+
+    params = ConnectionParams(
+        config.nickname,
+        config.server,
+        port = 6667,
+        tls = None,
+        sasl = SASLUserPass(config.username, secrets.sasl_password),
+    )
+
+    await bot.add_server("tilde.chat", params)
+    await bot.run()
+
+if __name__ == "__main__":
+    asyncio.run(main())

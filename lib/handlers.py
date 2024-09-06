@@ -6,10 +6,14 @@
 #
 
 import getopt
-from getopt import gnu_getopt
-import out
+import re
 
-# TODO: documentation on how this whole file,
+import config
+import utils
+
+Msg = utils.enum(RAW=0, OK=1, ERR=2)
+
+# TODO: documentation on how this whole file
 # works, so when I inevitably leave this project
 # to rot for a month I won't come back completely
 # confused.
@@ -32,17 +36,19 @@ import out
 
 async def execute(self, func, chan, src, msg):
     """
-    Ensure that all the necessary arguments
-    are in place, parse non-positional arguments,
-    and run function.
+    Ensure that all the necessary arguments are in place,
+    and run the function.
     """
+
+    async def error(text):
+        await self.msg(self.fndata[func]["module"], chan, [text])
+
     if func not in self.fndata:
         await func(self, chan, src, msg)
         return
 
-    shortopts = ""
-
     # create list of short opts
+    shortopts = ""
     for arg in self.fndata[func]["args"]:
         if "option" in arg:
             shortopts += arg["option"]
@@ -51,14 +57,33 @@ async def execute(self, func, chan, src, msg):
             shortopts += arg["flag"]
 
     try:
-        opts, args = gnu_getopt(msg.split(), shortopts)
+        opts, args = getopt.gnu_getopt(msg.split(), shortopts)
     except getopt.GetoptError as err:
         await out.msg(self, self.fndata[func]["module"], chan, [f"{err}"])
-        return
 
-    # -------------------------------
-    #     ***MESSY MESSY MESSY***
-    # -------------------------------
+    if "require_identified" in self.fndata[func]:
+        if self.users[src]["account"] == None:
+            await error("you must identify with NickServ to use this command.")
+            return
+    if "require_admin" in self.fndata[func]:
+        if not await self.is_admin(src):
+            await error("permission denied (admin-only command).")
+            return
+    if "require_op" in self.fndata[func]:
+        # operator
+        if not src in self.channels[chan]["modes"]["o"]:
+            await error(f"you must be an operator in this channel.")
+            return
+    if "require_hop" in self.fndata[func]:
+        # half operator
+        if not src in self.channels[chan]["modes"]["h"]:
+            await error(f"you must be an half-operator in this channel.")
+            return
+    if "require_vop" in self.fndata[func]:
+        # voice
+        if not src in self.channels[chan]["modes"]["v"]:
+            await error(f"you must have +v in this channel.")
+            return
 
     # ensure all non-optional arguments are in place
     non_optional = [
@@ -69,20 +94,35 @@ async def execute(self, func, chan, src, msg):
 
     if len(args) < len(non_optional):
         # all the required arguments aren't there!
-        name = non_optional[len(args)]["name"]
-        await out.msg(
-            self, self.fndata[func]["module"], chan, [f"need argument {name}"]
+        missing = non_optional[len(args)]["name"]
+        await error(
+            f"need argument '{missing}'. see '{config.prefix}help {self.fndata[func]['name']}'."
         )
         return
 
-    await func(self, chan, src, msg, args, dict(opts))
+    ret = await func(self, chan, src, msg)
+
+    # if the handler returns anything, print it to IRC.
+    # the returned data should be a Tuple[Msg, List[str]]
+    #
+    # TODO: for PATTERN/RAW modules as well
+    if ret and type(ret) == tuple:
+        msgtype = ret[0]
+        msgstr = ret[1]
+
+        if type(msgstr) == str:
+            msgstr = [msgstr]
+
+        if msgtype == Msg.RAW:
+            await self.message(chan, msgstr[0])
+        elif msgtype == Msg.OK or msgtype == Msg.ERR:
+            await self.msg(self.fndata[func]["module"], chan, msgstr)
 
 
 def register(self, modname, func):
     """
-    Parse a functions docstring and then
-    register it as a {cmd, raw, regex} handler.
-    Set helptext and aliases, too.
+    Parse a function's docstring and then register it
+    as a {cmd, raw, regex} handler. Set helptext and aliases, too.
     """
 
     # TODO: cleanup data parsing
@@ -104,6 +144,10 @@ def register(self, modname, func):
 
     doc = func.__doc__ or False
     if not doc:
+        self.log(
+            "handlers",
+            f"Tried to register function in module {modname} that had no docstring.",
+        )
         return
 
     last_item = ""
@@ -114,7 +158,7 @@ def register(self, modname, func):
             continue
         elif line[0] == ":":
             key, _, value = line.partition(": ")
-            key = key.lstrip(":")
+            key = key.lstrip(":").rstrip(":")
             if key in data and type(data[key]) is list:
                 data[key].append(value)
             else:

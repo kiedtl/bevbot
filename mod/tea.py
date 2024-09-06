@@ -1,6 +1,5 @@
 import dataclasses
 import handlers
-import out
 import random
 
 from common import nohighlight
@@ -17,7 +16,6 @@ CHANCE_OF_VESSEL_SIZE = 90
 CHANCE_OF_VESSEL_ADJ = 85
 
 ACTION = ["hands", "gives", "passes", "serves"]
-
 
 # some teas can only be in a certain set of containers.
 # for instance, hohins will only hold some kind of green tea.
@@ -154,12 +152,12 @@ def _tea(query):
     return f"{vessel_str} {filled_with} {heat} {tea_str}"
 
 
-async def serve(self, ch, src, msg, args, opts):
+async def serve(self, ch, src, msg):
     """
     :name: tea
     :hook: cmd
     :help: serve some tea!
-    :args: @user:str
+    :args: @user:str @kind:str
     """
     recipient = src
     query = None
@@ -173,9 +171,9 @@ async def serve(self, ch, src, msg, args, opts):
 
     if tea:
         action = random.choice(ACTION)
-        await self.ctcp(ch, "ACTION", f"{action} {recipient} a {tea}!")
+        await self.action(ch, f"{action} {recipient} a {tea}!")
     else:
-        await self.ctcp(ch, "ACTION", f"rummages around a bit...")
+        await self.action(ch, f"rummages around a bit...")
 
 
 async def init(self):

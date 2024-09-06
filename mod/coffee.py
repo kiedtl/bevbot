@@ -1,5 +1,4 @@
 import handlers
-import out
 import random
 from common import nohighlight
 
@@ -34,7 +33,7 @@ def _espresso():
     return f"{size} {heat} {flavor} {coffee} with {shots} {shots_str} of {espresso}"
 
 
-async def serve(self, ch, src, msg, args, opts):
+async def serve(self, ch, src, msg): #, args, opts):
     """
     :name: coffee
     :hook: cmd
@@ -48,7 +47,7 @@ async def serve(self, ch, src, msg, args, opts):
     espresso = _espresso()
     action = random.choice(ACTION)
 
-    await self.ctcp(ch, "ACTION", f"{action} {recipient} a {espresso}!")
+    await self.action(ch, f"{action} {recipient} a {espresso}!")
 
 
 async def init(self):
